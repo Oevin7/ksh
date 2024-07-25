@@ -1,9 +1,10 @@
 use std::fs;
 use std::env;
-use std::fs::read_dir;
+use std::path::Path;
 use crate::arg_handler::{ArgHandle, handle_args};
 use crate::file_operations::find_file;
-use crate::helper_functions::{get_args, combine_str, split_args};
+use crate::find_functions::{basic_fn, iterate_dirs};
+use crate::helper_functions::{combine_str, split_args};
 
 //Handles the execution of commands in the run_file.rs
 pub fn execute_commands(args : &str) {
@@ -104,22 +105,14 @@ fn cd(args : Vec<&str>) {
 fn fd(args : &str) {
     let arg = split_args(args);
 
-    let current_dir = env::current_dir().unwrap_or_default();
-
     if arg.len() == 0 {
-        let paths = read_dir(current_dir).unwrap();
-
-        //need to introduce proper error handling in the future.
-        for path in paths {
-            println!("{:?}", path.unwrap().file_name());
-        }
+        basic_fn();
     } else if arg.len() == 1 {
         let file_path = combine_str(arg);
-        let paths = read_dir(file_path).unwrap();
-
-        //need to introduce proper error handling in the future.
-        for path in paths {
-            println!("{:?}", path.unwrap().file_name());
+        let dir = Path::new(&file_path);
+        match iterate_dirs(dir) {
+            Ok(_) => {},
+            Err(e) => eprintln!("Could not access the file: {e}"),
         }
     }
 }
