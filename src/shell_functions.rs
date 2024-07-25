@@ -1,17 +1,11 @@
 use std::fs;
 use std::env;
-use std::path::PathBuf;
+use std::fs::read_dir;
 use crate::arg_handler::{ArgHandle, handle_args};
+use crate::file_operations::find_file;
+use crate::helper_functions::{get_args, combine_str, split_args};
 
-pub fn get_args() -> String {
-    let mut input = String::new();
-    match std::io::stdin().read_line(&mut input) {
-        Ok(_) => {}
-        Err(error) => eprintln!("error: {}", error),
-    }
-    input
-}
-
+//Handles the execution of commands in the run_file.rs
 pub fn execute_commands(args : &str) {
 
     let arg = split_args(args);
@@ -26,15 +20,14 @@ pub fn execute_commands(args : &str) {
         ArgHandle::PrintWorkingDirectory => pd(),
         ArgHandle::ListContents => ls(),
         ArgHandle::Concatenate(arg) => ct(arg),
+        ArgHandle::ChangeDirectory(arg) => cd(arg),
+        ArgHandle::Find(arg) => fd(arg),
         ArgHandle::Unknown => eprintln!("Command not found."),
     }
 
 }
 
-fn split_args(args : &str) -> Vec<&str> {
-    args.split_whitespace().collect()
-}
-
+//Works the same as echo. Prints whatever argument you give it to the console.
 fn pr(args : Vec<&str>) {
     if args.len() == 0 {
         println!("No arguments provided");
@@ -46,11 +39,13 @@ fn pr(args : Vec<&str>) {
     }
 }
 
+//Prints the working directory.
 fn pd() {
     let current_dir = env::current_dir().unwrap();
     println!("{}", current_dir.display());
 }
 
+//Lists the current files in the directory. Needs formatting done.
 fn ls() {
     let current_dir = env::current_dir().unwrap();
     let paths = fs::read_dir(current_dir).unwrap();
@@ -63,28 +58,7 @@ fn ls() {
 
 }
 
-fn find_file(name : &str) -> PathBuf {
-    let current_dir = env::current_dir().unwrap();
-    let paths = fs::read_dir(current_dir).unwrap();
-
-    let mut return_file = PathBuf::new();
-
-    for path in paths {
-        match path {
-            Ok(path) => {
-                if path.file_name() == name {
-                    return_file = path.path();
-                    break
-                }
-            }
-            Err(e) => eprintln!("An error occurred: {e}"),
-        }
-    }
-
-    return_file
-
-}
-
+//Works the same as cat on linux
 fn ct(args : &str) {
     let arg = split_args(args);
     let mut file_name = String::new();
@@ -108,4 +82,44 @@ fn ct(args : &str) {
         Err(e) => eprintln!("An error occurred:  {e}"),
     }
 
+}
+
+//Changes the current directory, works the same as on linux. Needs some formatting done.
+fn cd(args : Vec<&str>) {
+    let mut file_path = String::new();
+
+    for i in 0..args.len() {
+        file_path = args[i].parse().unwrap();
+    }
+
+    match env::set_current_dir(file_path) {
+        Ok(_) => {},
+        Err(e) => eprintln!("A file or directory was either improperly entered, or does not exist. \
+        More information: {e}"),
+    }
+
+}
+
+//Similar to find in linux. While not done, it will work in a very similar manner when completed.
+fn fd(args : &str) {
+    let arg = split_args(args);
+
+    let current_dir = env::current_dir().unwrap_or_default();
+
+    if arg.len() == 0 {
+        let paths = read_dir(current_dir).unwrap();
+
+        //need to introduce proper error handling in the future.
+        for path in paths {
+            println!("{:?}", path.unwrap().file_name());
+        }
+    } else if arg.len() == 1 {
+        let file_path = combine_str(arg);
+        let paths = read_dir(file_path).unwrap();
+
+        //need to introduce proper error handling in the future.
+        for path in paths {
+            println!("{:?}", path.unwrap().file_name());
+        }
+    }
 }
