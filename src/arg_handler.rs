@@ -5,7 +5,7 @@ pub enum ArgHandle<'a> {
     ListContents,
     Concatenate(&'a str),
     ChangeDirectory(Vec<&'a str>),
-    Find(&'a str),
+    Find(Vec<&'a str>),
     Unknown,
 }
 
@@ -17,7 +17,7 @@ pub fn handle_args(args : Vec<&str>) -> ArgHandle {
         Some("ls") => ArgHandle::ListContents,
         Some("ct") => ArgHandle::Concatenate(args.get(1).cloned().unwrap_or_default()),
         Some("cd") => ArgHandle::ChangeDirectory(args[1..].to_vec()),
-        Some("fd") => ArgHandle::Find(args.get(1).cloned().unwrap_or_default()),
+        Some("fd") => ArgHandle::Find(args[1..].to_vec()),
         _ => ArgHandle::Unknown,
     }
 }

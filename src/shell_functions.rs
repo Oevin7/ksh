@@ -1,9 +1,10 @@
 use std::fs;
 use std::env;
 use std::path::Path;
+use std::process::Command;
 use crate::arg_handler::{ArgHandle, handle_args};
 use crate::file_operations::find_file;
-use crate::find_functions::{basic_fn, iterate_dirs};
+use crate::find_functions::{iterate_dirs};
 use crate::helper_functions::{combine_str, split_args};
 
 //Handles the execution of commands in the run_file.rs
@@ -102,17 +103,31 @@ fn cd(args : Vec<&str>) {
 }
 
 //Similar to find in linux. While not done, it will work in a very similar manner when completed.
-fn fd(args : &str) {
-    let arg = split_args(args);
+fn fd(args : Vec<&str>) {
+    let current_dir = env::current_dir().unwrap_or_default();
+    let file_path = combine_str(args.to_vec());
+    let mut dir = Path::new("");
+    let mut filters : Vec<&str> = vec![];
 
-    if arg.len() == 0 {
-        basic_fn();
-    } else if arg.len() == 1 {
-        let file_path = combine_str(arg);
-        let dir = Path::new(&file_path);
-        match iterate_dirs(dir) {
-            Ok(_) => {},
-            Err(e) => eprintln!("Could not access the file: {e}"),
-        }
+    if file_path.is_empty() {
+        dir = Path::new(&current_dir);
+    } else {
+        dir = Path::new(&file_path);
     }
+
+    if args.len() > 2 {
+        filters = args[1..].to_vec();
+    }
+
+    match iterate_dirs(dir, filters) {
+        Ok(_) => {},
+        Err(e) => eprintln!("Could not access the file: {e}"),
+    }
+
+}
+
+//Filters files in the current directory. Works similar to find, but takes fewer arguments and
+//only works in the current directory
+fn fl(args : Vec<&str>) {
+
 }
