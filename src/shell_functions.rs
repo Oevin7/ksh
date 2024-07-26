@@ -1,7 +1,8 @@
 use std::fs;
 use std::env;
+use std::ffi::{OsString};
+use std::fs::read_dir;
 use std::path::Path;
-use std::process::Command;
 use crate::arg_handler::{ArgHandle, handle_args};
 use crate::file_operations::find_file;
 use crate::find_functions::{iterate_dirs};
@@ -24,6 +25,7 @@ pub fn execute_commands(args : &str) {
         ArgHandle::Concatenate(arg) => ct(arg),
         ArgHandle::ChangeDirectory(arg) => cd(arg),
         ArgHandle::Find(arg) => fd(arg),
+        ArgHandle::Filter(arg) => fl(arg),
         ArgHandle::Unknown => eprintln!("Command not found."),
     }
 
@@ -50,7 +52,7 @@ fn pd() {
 //Lists the current files in the directory. Needs formatting done.
 fn ls() {
     let current_dir = env::current_dir().unwrap();
-    let paths = fs::read_dir(current_dir).unwrap();
+    let paths = read_dir(current_dir).unwrap();
 
     for path in paths {
         print!("{:?} ", path.unwrap().file_name());
@@ -129,5 +131,37 @@ fn fd(args : Vec<&str>) {
 //Filters files in the current directory. Works similar to find, but takes fewer arguments and
 //only works in the current directory
 fn fl(args : Vec<&str>) {
+    let filters: Vec<&str> = args.to_vec();
+    let current_dir = env::current_dir().unwrap_or_default();
+    let dir = read_dir(&current_dir);
 
+    if filters.is_empty() {
+        return;
+    }
+
+    match dir {
+        Ok(paths) => {
+            for files in paths {
+                let file = files.unwrap();
+                let path = file.path();
+                let file_name = file.file_name();
+                let ext = path.extension();
+
+                for filter in &filters {
+                    if filter.starts_with(".") {
+                        if ext.unwrap_or_default() == &OsString::from(&filter[1..]) {
+                            println!("{:?}", file_name);
+                        }
+                    } else {
+                        let file_name_str = file_name.to_string_lossy();
+                        if file_name_str.contains(filter) {
+                            println!("{:?}", file_name);
+                        }
+                    }
+                }
+
+            }
+        }
+        Err(e) => eprintln!("Could not access the directory: {e}"),
+    }
 }
