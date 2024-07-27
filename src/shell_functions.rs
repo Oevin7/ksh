@@ -69,6 +69,7 @@ fn ct(args : &str) {
 
     if arg.len() == 0 {
         println!("No arguments provided.");
+        return
     } else {
         for i in 0..arg.len() {
             file_name = arg[i].parse().unwrap();
@@ -154,7 +155,7 @@ fn fl(args : Vec<&str>) {
                         }
                     } else {
                         let file_name_str = file_name.to_string_lossy();
-                        if file_name_str.contains(filter) {
+                        if file_name_str.contains(filter.trim()) {
                             println!("{:?}", file_name);
                         }
                     }
