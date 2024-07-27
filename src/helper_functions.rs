@@ -1,14 +1,3 @@
-pub fn combine_str(args : Vec<&str>) -> String {
-
-    let mut return_str = String::new();
-
-    for i in 0..args.len() {
-        return_str = args[i].parse().unwrap();
-    }
-
-    return_str
-
-}
 
 //Gets arguments for the shell
 pub fn get_args() -> String {

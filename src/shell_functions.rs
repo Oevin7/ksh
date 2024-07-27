@@ -2,11 +2,11 @@ use std::fs;
 use std::env;
 use std::ffi::{OsString};
 use std::fs::read_dir;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use crate::arg_handler::{ArgHandle, handle_args};
 use crate::file_operations::find_file;
 use crate::find_functions::{iterate_dirs};
-use crate::helper_functions::{combine_str, split_args};
+use crate::helper_functions::{split_args};
 
 //Handles the execution of commands in the run_file.rs
 pub fn execute_commands(args : &str) {
@@ -93,38 +93,47 @@ fn ct(args : &str) {
 fn cd(args : Vec<&str>) {
     let mut file_path = String::new();
 
-    for i in 0..args.len() {
-        file_path = args[i].parse().unwrap();
+    if args.is_empty() {
+        file_path = "/home".to_string();
+    } else {
+        for i in 0..args.len() {
+            file_path = args[i].parse().unwrap();
+        }
     }
 
-    match env::set_current_dir(file_path) {
+    match env::set_current_dir(&file_path) {
         Ok(_) => {},
         Err(e) => eprintln!("A file or directory was either improperly entered, or does not exist. \
-        More information: {e}"),
+        More information: {}", e),
     }
 
 }
 
 //Similar to find in linux. While not done, it will work in a very similar manner when completed.
 fn fd(args : Vec<&str>) {
-    let current_dir = env::current_dir().unwrap_or_default();
-    let file_path = combine_str(args.to_vec());
-    let mut dir = Path::new("");
-    let mut filters : Vec<&str> = vec![];
+    let mut current_dir = env::current_dir().unwrap_or_default();
+    let mut filters = vec![];
+    let mut file_path = String::new();
 
-    if file_path.is_empty() {
-        dir = Path::new(&current_dir);
-    } else {
-        dir = Path::new(&file_path);
+    if args.len() > 0 {
+        let potential_path = Path::new(args[0]);
+
+        if potential_path.exists() {
+            file_path = args[0].to_string();
+
+            filters = args[1..].to_vec();
+        } else {
+            filters = args.to_vec();
+        }
     }
 
-    if args.len() > 2 {
-        filters = args[1..].to_vec();
+    if !file_path.is_empty() {
+        current_dir = PathBuf::from(&file_path);
     }
 
-    match iterate_dirs(dir, filters) {
+    match iterate_dirs(&current_dir, &filters) {
         Ok(_) => {},
-        Err(e) => eprintln!("Could not access the file: {e}"),
+        Err(e) => eprintln!("Could not access the file: {:?}", e),
     }
 
 }

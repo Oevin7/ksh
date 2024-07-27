@@ -1,4 +1,5 @@
-use std::io;
+use std::{io};
+use std::path::PathBuf;
 use ini::Ini;
 
 pub fn init_config() -> Ini {
@@ -20,15 +21,15 @@ pub fn init_config() -> Ini {
 }
 
 pub fn write_commands(config : Ini) -> Result<(), io::Error> {
-    config.write_to_file("ksh.ini")?;
+    config.write_to_file(get_config_path())?;
     Ok(())
 }
 
 pub fn get_commands(command : &str) -> Option<String> {
-    let mut config = match Ini::load_from_file("ksh.ini") {
+    let mut config = match Ini::load_from_file(get_config_path())  {
         Ok(con) => con,
         Err(e) => {
-            eprintln!("Could not access file: {e}");
+            eprintln!("Could not access file: {:?}", e);
             return None
         }
     };
@@ -43,7 +44,7 @@ pub fn get_commands(command : &str) -> Option<String> {
 
     for (key, val) in section.iter() {
         if key == command {
-            return Some(val.clone().to_string());
+            return Some(val.to_string());
         }
     }
 
@@ -52,7 +53,7 @@ pub fn get_commands(command : &str) -> Option<String> {
 }
 
 pub fn get_user() -> Option<String> {
-    let mut config = match Ini::load_from_file("ksh.ini") {
+    let mut config = match Ini::load_from_file(get_config_path()) {
         Ok(con) => con,
         Err(e) => {
             eprintln!("Could not access file: {e}");
@@ -72,4 +73,9 @@ pub fn get_user() -> Option<String> {
 
     Some(user)
 
+}
+
+pub fn get_config_path() -> PathBuf {
+    let path = PathBuf::from("/home/kevin/Documents/GitHub/ksh/ksh.ini");
+    path
 }
