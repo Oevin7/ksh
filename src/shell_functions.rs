@@ -4,7 +4,7 @@ use std::ffi::{OsString};
 use std::fs::read_dir;
 use std::path::{Path, PathBuf};
 use crate::arg_handler::{ArgHandle, handle_args};
-use crate::file_operations::find_file;
+use crate::file_operations::{find_file, write_file};
 use crate::find_functions::{iterate_dirs};
 use crate::helper_functions::{split_args};
 
@@ -26,6 +26,7 @@ pub fn execute_commands(args : &str) {
         ArgHandle::ChangeDirectory(arg) => cd(arg),
         ArgHandle::Find(arg) => fd(arg),
         ArgHandle::Filter(arg) => fl(arg),
+        ArgHandle::Touch(arg) => tc(arg),
         ArgHandle::Unknown => eprintln!("Command not found."),
     }
 
@@ -174,4 +175,29 @@ fn fl(args : Vec<&str>) {
         }
         Err(e) => eprintln!("Could not access the directory: {e}"),
     }
+}
+
+fn tc(args : Vec<&str>) {
+    let file_name = args[0];
+    let mut file_path = "";
+
+    if args.len() == 2 {
+        file_path = args[1];
+        match write_file(file_name, file_path) {
+            Ok(_) => {},
+            Err(e) => {
+                eprintln!("Could not write to file: {:?}", e);
+                return;
+            }
+        };
+    }
+
+    match write_file(file_name, file_path) {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("Could not write to file: {:?}", e);
+            return;
+        }
+    };
+
 }

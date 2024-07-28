@@ -9,6 +9,7 @@ pub enum ArgHandle<'a> {
     ChangeDirectory(Vec<&'a str>),
     Find(Vec<&'a str>),
     Filter(Vec<&'a str>),
+    Touch(Vec<&'a str>),
     Unknown,
 }
 
@@ -26,6 +27,7 @@ pub fn handle_args(args : Vec<&str>) -> ArgHandle {
         Some(c) if c == commands[5] => ArgHandle::ChangeDirectory(args[1..].to_vec()),
         Some(c) if c == commands[6] => ArgHandle::Find(args[1..].to_vec()),
         Some(c) if c == commands[7] => ArgHandle::Filter(args[1..].to_vec()),
+        Some(c) if c == commands[8] => ArgHandle::Touch(args[1..].to_vec()),
         _ => ArgHandle::Unknown,
     }
 }
@@ -39,8 +41,9 @@ fn command_args() -> Vec<String> {
     let cd = get_commands("change_directory").unwrap_or("cd".to_string());
     let find = get_commands("find").unwrap_or("fd".to_string());
     let filter = get_commands("filter").unwrap_or("fl".to_string());
+    let touch = get_commands("touch").unwrap_or("tc".to_string());
 
-    let commands : Vec<String> = vec![exit, print, pd, list, ct, cd, find, filter];
+    let commands : Vec<String> = vec![exit, print, pd, list, ct, cd, find, filter, touch];
 
     commands
 

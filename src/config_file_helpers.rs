@@ -14,7 +14,8 @@ pub fn init_config() -> Ini {
         .set("concatenate", "ct")
         .set("change_directory", "cd")
         .set("find", "fd")
-        .set("filter", "fl");
+        .set("filter", "fl")
+        .set("touch", "tc");
 
     config
 
